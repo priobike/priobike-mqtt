@@ -1,0 +1,49 @@
+version: '3'
+services:
+  emqx:
+    build: .
+    networks:
+      - test-network
+    environment:
+      - MQTT_PORT=1883
+      - EMQX_CLUSTER__DISCOVERY_STRATEGY=dns
+      - EMQX_CLUSTER__DNS__NAME=emqx
+      - EMQX_CLUSTER__DNS__RECORD_TYPE=a
+      - EMQX_AUTH__USER__PASSWORD_HASH=plain
+      - EMQX_AUTH__USER__1__USERNAME=backend
+      - EMQX_AUTH__USER__1__PASSWORD=nWK8Am3d2Hbupx
+    labels:
+      - traefik.enable=true
+      - traefik.tcp.services.emqx.loadbalancer.server.port=1883
+      - traefik.tcp.routers.emqx.entrypoints=emqx
+      - traefik.tcp.routers.emqx.rule=HostSNI(`*`)
+      - traefik.tcp.routers.emqx.service=emqx
+    deploy:
+      mode: replicated
+      endpoint_mode: dnsrr
+      replicas: 4
+      restart_policy:
+        condition: any
+    
+  traefik:
+    image: traefik:v2.9
+    hostname: traefik
+    networks:
+      - test-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports: 
+      - "1883:1883"
+      - "8080:8080"
+    command:
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=test-network
+      - --entryPoints.emqx.address=:1883
+      # Enable dashboard
+      - --api.insecure=true
+      - --log.level=DEBUG
+
+networks:
+  test-network:
+    name: test-network
