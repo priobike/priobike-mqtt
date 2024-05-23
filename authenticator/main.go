@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type AuthRequest struct {
@@ -19,8 +20,11 @@ type AuthResponse struct {
 
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	// Load username and password from environment variables
-	username := os.Getenv("EMQX_USERNAME")
-	password := os.Getenv("EMQX_PASSWORD")
+	usernames := os.Getenv("USERNAMES")
+	passwords := os.Getenv("PASSWORDS")
+	// Split by comma
+	usernamesList := strings.Split(usernames, ",")
+	passwordsList := strings.Split(passwords, ",")
 
 	// Set content type json
 	w.Header().Set("Content-Type", "application/json")
@@ -36,7 +40,16 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the username and password are correct
 	var authResponse AuthResponse
-	if authRequest.Username == username && authRequest.Password == password {
+	var authenticated = false
+
+	for i, username := range usernamesList {
+		if authRequest.Username == username && authRequest.Password == passwordsList[i] {
+			authenticated = true
+			break
+		}
+	}
+
+	if authenticated {
 		authResponse = AuthResponse{Result: "allow", IsSuperuser: false}
 		w.WriteHeader(http.StatusOK)
 	} else {
@@ -50,7 +63,9 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	fmt.Println("Starting server")
 	http.HandleFunc("/", authHandler)
-	err := http.ListenAndServe(":31337", nil)
+	// Get port from env
+	port := os.Getenv("PORT")
+	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		fmt.Printf("Error starting server: %s\n", err)
 	}

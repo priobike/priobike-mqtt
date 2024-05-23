@@ -43,7 +43,25 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: mqtt
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta_static
+        # See: https://github.com/docker/metadata-action
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ inputs.registry }}/${{ inputs.image }}-authenticator
+          tags: |
+            type=raw,value=${{ inputs.ref_name }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: authenticator
+          push: true
+          tags: ${{ steps.meta_static.outputs.tags }}
+          labels: ${{ steps.meta_static.outputs.labels }}
+          

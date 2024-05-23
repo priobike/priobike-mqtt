@@ -13,5 +13,9 @@ mosquitto_pub \
 ```
 
 ```
-mosquitto_sub -h "localhost" -p 1883 -t "test"
+mosquitto_sub \
+    -h "localhost" \
+    -p 1883 \
+    -u "user" -P "mqtt@priobike-2022" \
+    -t "test"
 ```
