@@ -10,8 +10,6 @@ services:
       - EMQX_CLUSTER__DNS__NAME=emqx
       - EMQX_CLUSTER__DNS__RECORD_TYPE=a
       - EMQX_AUTH__USER__PASSWORD_HASH=plain
-      - EMQX_AUTH__USER__1__USERNAME=backend
-      - EMQX_AUTH__USER__1__PASSWORD=nWK8Am3d2Hbupx
     labels:
       - traefik.enable=true
       - traefik.tcp.services.emqx.loadbalancer.server.port=1883
@@ -22,6 +20,29 @@ services:
       mode: replicated
       endpoint_mode: dnsrr
       replicas: 4
+      restart_policy:
+        condition: any
+
+  emqx-auth:
+    build: 
+      context: .
+      dockerfile: Dockerfile.auth
+    networks:
+      - test-network
+    environment:
+      # Vars used by the authentication server
+      - EMQX_USERNAME=backend
+      - EMQX_PASSWORD=nWK8Am3d2Hbupx
+    labels:
+      - traefik.enable=true
+      - traefik.tcp.services.emqxauth.loadbalancer.server.port=31337
+      - traefik.tcp.routers.emqxauth.entrypoints=emqxauth
+      - traefik.tcp.routers.emqxauth.rule=HostSNI(`*`)
+      - traefik.tcp.routers.emqxauth.service=emqxauth
+    deploy:
+      mode: replicated
+      endpoint_mode: dnsrr
+      replicas: 1
       restart_policy:
         condition: any
     
@@ -35,11 +56,13 @@ services:
     ports: 
       - "1883:1883"
       - "8080:8080"
+      - "31337:31337"
     command:
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=test-network
       - --entryPoints.emqx.address=:1883
+      - --entryPoints.emqxauth.address=:31337
       # Enable dashboard
       - --api.insecure=true
       - --log.level=DEBUG
