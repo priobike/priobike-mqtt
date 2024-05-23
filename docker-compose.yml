@@ -9,13 +9,17 @@ services:
       - EMQX_CLUSTER__DISCOVERY_STRATEGY=dns
       - EMQX_CLUSTER__DNS__NAME=emqx
       - EMQX_CLUSTER__DNS__RECORD_TYPE=a
-      - EMQX_AUTH__USER__PASSWORD_HASH=plain
     labels:
       - traefik.enable=true
       - traefik.tcp.services.emqx.loadbalancer.server.port=1883
       - traefik.tcp.routers.emqx.entrypoints=emqx
       - traefik.tcp.routers.emqx.rule=HostSNI(`*`)
       - traefik.tcp.routers.emqx.service=emqx
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18083/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
     deploy:
       mode: replicated
       endpoint_mode: dnsrr
@@ -23,7 +27,7 @@ services:
       restart_policy:
         condition: any
 
-  emqx-auth:
+  emqx-auth-provider:
     build: 
       context: .
       dockerfile: Dockerfile.auth
