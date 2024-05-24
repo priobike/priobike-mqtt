@@ -9,7 +9,7 @@ services:
       - EMQX_CLUSTER__DISCOVERY_STRATEGY=dns
       - EMQX_CLUSTER__DNS__NAME=emqx
       - EMQX_CLUSTER__DNS__RECORD_TYPE=a
-      - EMQX_AUTHENTICATION__URL=http://emqx-authenticator:8000/
+      - EMQX_AUTHENTICATION__1__URL=http://emqx-authenticator:8000/
     labels:
       - traefik.enable=true
       - traefik.tcp.services.emqx.loadbalancer.server.port=1883
