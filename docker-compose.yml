@@ -1,7 +1,7 @@
 version: '3'
 services:
   emqx:
-    build: .
+    build: mqtt
     networks:
       - test-network
     environment:
@@ -9,9 +9,7 @@ services:
       - EMQX_CLUSTER__DISCOVERY_STRATEGY=dns
       - EMQX_CLUSTER__DNS__NAME=emqx
       - EMQX_CLUSTER__DNS__RECORD_TYPE=a
-      - EMQX_AUTH__USER__PASSWORD_HASH=plain
-      - EMQX_AUTH__USER__1__USERNAME=backend
-      - EMQX_AUTH__USER__1__PASSWORD=nWK8Am3d2Hbupx
+      - EMQX_AUTHENTICATION__URL=http://emqx-authenticator:8000/
     labels:
       - traefik.enable=true
       - traefik.tcp.services.emqx.loadbalancer.server.port=1883
@@ -21,7 +19,23 @@ services:
     deploy:
       mode: replicated
       endpoint_mode: dnsrr
-      replicas: 4
+      replicas: 2
+      restart_policy:
+        condition: any
+
+  emqx-authenticator:
+    build: authenticator
+    networks:
+      - test-network
+    environment:
+      # Vars used by the authentication server
+      - PORT=:8000
+      - USERNAMES=backend,user
+      - PASSWORDS=nWK8Am3d2Hbupx,mqtt@priobike-2022
+    deploy:
+      mode: replicated
+      endpoint_mode: dnsrr
+      replicas: 1
       restart_policy:
         condition: any
     
