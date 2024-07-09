@@ -1,11 +1,10 @@
 # priobike-mqtt
 
-This repo contains a Dockerfile to use an [EMQX](https://github.com/emqx/emqx) broker and a Dockerfile to use an authenticator.
-Together we can create an MQTT Cluster with authentication.
+This repository contains a custom [EMQX](https://github.com/emqx/emqx) configuration with access control. It also contains a tiny Go service for authentication at the brokers: https://github.com/priobike/priobike-mqtt/blob/main/authenticator/main.go -- this service loads the `USERNAMES` and `PASSWORDS` env vars (see [`docker-compose.yml`](https://github.com/priobike/priobike-mqtt/blob/main/docker-compose.yml)) and checks all connection attempts to the mqtt cluster against these credentials.
 
 # Quickstart
 
-The easiest way to run a minimal setup containing EMQX and the authenticator is to use the contained `docker-compose.yaml`:
+The easiest way to run a minimal setup containing EMQX and the authenticator is to use the contained `docker-compose.yml`:
 ```
 docker-compose up --build
 ```
