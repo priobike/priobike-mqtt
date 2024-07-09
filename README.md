@@ -1,4 +1,4 @@
-# PrioBike MQTT
+# priobike-mqtt
 
 This repo contains a Dockerfile to use an [EMQX](https://github.com/emqx/emqx) broker and a Dockerfile to use an authenticator.
 Together we can create an MQTT Cluster with authentication.
